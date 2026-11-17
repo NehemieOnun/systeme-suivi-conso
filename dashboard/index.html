@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ma consommation électrique</title>
+  <meta name="description" content="Suivi de la consommation électrique domestique">
+  <link rel="stylesheet" href="style.css">
+  <script src="config.js" defer></script>
+  <script src="vendor/chart-4.6.1.umd.min.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <!-- Écran de connexion -->
+  <main id="vue-connexion" class="vue" hidden>
+    <form id="form-connexion" class="carte connexion" novalidate>
+      <h1>Ma consommation</h1>
+      <p class="discret">Connectez-vous pour suivre votre consommation d'électricité.</p>
+      <label for="email">Adresse e-mail</label>
+      <input id="email" name="email" type="email" autocomplete="username" required maxlength="150">
+      <label for="mot-de-passe">Mot de passe</label>
+      <input id="mot-de-passe" name="motDePasse" type="password" autocomplete="current-password" required maxlength="128">
+      <button type="submit">Se connecter</button>
+      <p id="msg-connexion" class="message" role="alert"></p>
+    </form>
+  </main>
+
+  <!-- Application -->
+  <div id="vue-app" class="vue" hidden>
+    <header class="entete">
+      <div>
+        <h1>Ma consommation</h1>
+        <p id="derniere-mesure" class="discret">Chargement…</p>
+      </div>
+      <button id="btn-deconnexion" class="lien" type="button">Déconnexion</button>
+    </header>
+
+    <p id="msg-app" class="message" role="status"></p>
+
+    <!-- Onglet Tableau de bord -->
+    <section id="onglet-tableau" class="onglet">
+      <div id="bandeau-alerte" class="alerte" role="alert" hidden>
+        <span id="texte-alerte"></span>
+        <button id="btn-alerte-lue" class="lien" type="button">Marquer comme lue</button>
+      </div>
+      <div class="tuiles">
+        <div class="tuile"><span class="etiquette">Puissance</span><span id="val-puissance" class="valeur">–</span></div>
+        <div class="tuile"><span class="etiquette">Tension</span><span id="val-tension" class="valeur">–</span></div>
+        <div class="tuile"><span class="etiquette">Énergie du jour</span><span id="val-energie" class="valeur">–</span></div>
+        <div class="tuile accent"><span class="etiquette">Coût du jour</span><span id="val-cout" class="valeur">–</span></div>
+      </div>
+      <h2>Aujourd'hui, heure par heure</h2>
+      <div class="graphique"><canvas id="graph-jour" aria-label="Énergie consommée par heure aujourd'hui" role="img"></canvas></div>
+    </section>
+
+    <!-- Onglet Historique -->
+    <section id="onglet-historique" class="onglet" hidden>
+      <div class="periodes" role="tablist" aria-label="Période">
+        <button type="button" data-periode="jour" class="actif" role="tab" aria-selected="true">Jour</button>
+        <button type="button" data-periode="semaine" role="tab" aria-selected="false">Semaine</button>
+        <button type="button" data-periode="mois" role="tab" aria-selected="false">Mois</button>
+      </div>
+      <p id="total-periode" class="total"></p>
+      <div class="graphique"><canvas id="graph-historique" aria-label="Historique de consommation" role="img"></canvas></div>
+    </section>
+
+    <!-- Onglet Paramètres -->
+    <section id="onglet-parametres" class="onglet" hidden>
+      <form id="form-seuil" class="carte" novalidate>
+        <h2>Seuil d'alerte journalier</h2>
+        <label for="seuil">Énergie maximale par jour (kWh)</label>
+        <input id="seuil" type="number" min="0.01" max="1000" step="0.01" required inputmode="decimal">
+        <label class="case"><input id="seuil-actif" type="checkbox" checked> Alerte activée</label>
+        <button type="submit">Enregistrer</button>
+      </form>
+
+      <div id="zone-admin" hidden>
+        <form id="form-tarif" class="carte" novalidate>
+          <h2>Tarif de l'électricité</h2>
+          <p id="tarif-actuel" class="discret"></p>
+          <label for="tarif-prix">Prix du kWh (CDF)</label>
+          <input id="tarif-prix" type="number" min="0.01" step="0.01" required inputmode="decimal">
+          <label for="tarif-date">Applicable à partir du</label>
+          <input id="tarif-date" type="date" required>
+          <button type="submit">Ajouter le tarif</button>
+        </form>
+
+        <form id="form-menage" class="carte" novalidate>
+          <h2>Nouveau ménage</h2>
+          <label for="menage-adresse">Adresse</label>
+          <input id="menage-adresse" required maxlength="255">
+          <label for="menage-commune">Commune</label>
+          <input id="menage-commune" required maxlength="50">
+          <button type="submit">Créer le ménage</button>
+        </form>
+
+        <form id="form-utilisateur" class="carte" novalidate>
+          <h2>Nouvel utilisateur</h2>
+          <label for="u-nom">Nom</label>
+          <input id="u-nom" required maxlength="100">
+          <label for="u-email">E-mail</label>
+          <input id="u-email" type="email" required maxlength="150">
+          <label for="u-mdp">Mot de passe provisoire (8 caractères minimum)</label>
+          <input id="u-mdp" type="password" minlength="8" required maxlength="128" autocomplete="new-password">
+          <label for="u-menage">Ménage</label>
+          <select id="u-menage" class="liste-menages"></select>
+          <label for="u-role">Rôle</label>
+          <select id="u-role"><option value="usager">Usager</option><option value="admin">Administrateur</option></select>
+          <button type="submit">Créer l'utilisateur</button>
+        </form>
+
+        <form id="form-boitier" class="carte" novalidate>
+          <h2>Nouveau boîtier</h2>
+          <label for="b-numero">Numéro de série</label>
+          <input id="b-numero" required maxlength="50" pattern="[A-Za-z0-9_\-]+" placeholder="BOITIER-001">
+          <label for="b-menage">Ménage</label>
+          <select id="b-menage" class="liste-menages"></select>
+          <button type="submit">Créer le boîtier</button>
+          <div id="cle-boitier" class="cle" hidden>
+            <p><strong>Clé API à copier dans config.h :</strong></p>
+            <code id="cle-valeur"></code>
+            <p class="discret">Elle ne sera plus jamais affichée.</p>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <nav class="navigation" aria-label="Navigation principale">
+      <button type="button" data-onglet="tableau" class="actif">Tableau de bord</button>
+      <button type="button" data-onglet="historique">Historique</button>
+      <button type="button" data-onglet="parametres">Paramètres</button>
+    </nav>
+  </div>
+
+  <noscript><p class="message">Ce tableau de bord nécessite JavaScript.</p></noscript>
+</body>
+</html>

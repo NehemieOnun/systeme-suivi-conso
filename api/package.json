@@ -1,0 +1,28 @@
+{
+  "name": "api-suivi-consommation",
+  "version": "1.0.0",
+  "description": "API REST du système IoT de suivi de la consommation électrique domestique (TFE ESI/UNILU)",
+  "main": "src/server.js",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=22.9"
+  },
+  "scripts": {
+    "start": "node --env-file-if-exists=.env src/server.js",
+    "init-db": "node --env-file-if-exists=.env scripts/init-db.js",
+    "creer-admin": "node --env-file-if-exists=.env scripts/creer-admin.js",
+    "simuler": "node scripts/simuler-boitier.js",
+    "test": "node --env-file-if-exists=.env.test --test --test-concurrency=1 test/api.test.js"
+  },
+  "author": "Nehemie Onun",
+  "license": "MIT",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
+    "express": "^5.3.0",
+    "express-rate-limit": "^8.7.4",
+    "helmet": "^8.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "pg": "^8.23.1"
+  }
+}
