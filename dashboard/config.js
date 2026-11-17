@@ -1,4 +1,4 @@
-// Adresse de l'API (à remplacer par l'adresse Render après le déploiement)
+// Adresse de l'API déployée sur Vercel
 window.CONFIG = {
-  API_URL: 'http://localhost:3000'
+  API_URL: 'https://suivi-conso-api.vercel.app'
 };
